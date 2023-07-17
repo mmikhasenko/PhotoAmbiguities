@@ -22,27 +22,34 @@ end
 
 
 
-struct Experiment{M,T}
+struct Experiment{M,D,P,K}
     model::M
-    data::T
-    pg::Vector{<:Number}
-    pa::Vector{<:Number}
+    data::D
+    pv::SVector{K,SVector{P,C}} where C<:Number
 end
 
-function Experiment(m::Model, data, N::Int; initg::Vector{<:Number}, inita::Vector{<:Number})
+nminima(exp::Experiment{M,D,P,K}) where {M,D,P,K} = K
+
+function Experiment(m::Model, data, N::Int; initv::Vector{Vector{T}} where T)
     pickeditems = rand(1:size(data,1), N)
     _data = data[pickeditems,:]
     # 
-    pg = go2min(m, _data, initg)[2]
-    pa = go2min(m, _data, inita)[2]
+    pv = [go2min(m, _data, init)[2] for init in initv]
     # 
-    Experiment(m, _data, pg, pa)
+    K = length(initv)
+    P = length(initv[1])
+    Experiment(m, _data, SVector{K}(SVector{P}.(pv)))
 end
 
 track(p0,pa,t) = (p0+pa)/2 + cis(π*t) * (p0-pa)/2
 
-function NNL(exp::Experiment, t)
-    @unpack pg, pa = exp
-    f(t) = track(pg,pa,t)
-    return NNL(update(exp.model, f(t)), exp.data)
+
+function NNL(exp::Experiment{M,D,P,K}, t) where {M,D,P,K}
+    extended_pv = exp.pv[[K, 1:K..., 1]]
+    itr_real = cubic_spline_interpolation(-1:K, extended_pv .|> real)
+    itr_imag = cubic_spline_interpolation(-1:K, extended_pv .|> imag)
+    # 
+    f = itr_real(t) + 1im .* itr_imag(t)
+    m = update(exp.model, f |> collect)
+    return NNL(m, exp.data)
 end

@@ -46,6 +46,25 @@ end
 
 const data0 = data[1:1000,:]
 
+# const vg = [
+#     0.49109412952223364 + 0.0im,
+#  0.17452721649480124 + 0.07352771979282956im,
+#  -0.5546581708300674 + 0.030387046460541887im,
+#  0.03779033807335423 - 0.6426222158907298im
+# ]
+# const va = [
+#     0.7978730044478058 + 0.0im,
+#   0.07137995116717206 + 0.013872646891610791im,
+#  -0.19911246194264326 - 0.0035293965456349875im,
+#  0.009340724644777181 - 0.5642389943398158im
+# ]
+# # 
+
+# exp0 = let Ndata = 1000
+#     Experiment(mg, data, Ndata;
+#         initv = [vg,va])
+# end
+
 @time mimimizarion_attempts = let Natt=10
     _mg = mg; #Model((waveset=mg.waveset, Pγ=0))
     ThreadsX.map(1:Natt) do _
@@ -74,7 +93,7 @@ function drop_conjugate(minima)
 end
 
 
-selected_minima0 = [a[2] for a in mimimizarion_attempts] .|> normalize |> cluster |> drop_conjugate
+selected_minima0 = [a[2] for a in mimimizarion_attempts] .|> normalize |> cluster #|> drop_conjugate
 sort!(selected_minima0, by=m->NNL(update(mg, m), data0))
 
 
@@ -84,18 +103,13 @@ md"""
 
 exp0 = let Ndata = 1000
     Experiment(mg, data, Ndata;
-        initg = selected_minima[1],
-        inita = selected_minima[2])
+        initv = selected_minima0)
 end
 
 let 
     NNL0 = NNL(exp0, 0)
-	plot(t->NNL(exp0, t)-NNL0, -0.5, 1.5)
-	vline!([0,1])
-    lens!([-0.1,0.1],      [-1,45], inset=(1, bbox(0.1,0.3,0.3,0.2)))
-    lens!([-0.1,0.1] .+ 1, [-1,45], inset=(1, bbox(0.6,0.3,0.3,0.2)))
-    hline!(sp=2, [0.0], xaxis=nothing, l=(:dash, :gray))
-    hline!(sp=3, [0.0], xaxis=nothing, l=(:dash, :gray))
+	plot(t->NNL(exp0, t)-NNL0, -0.5, nminima(exp0)-0.5)
+	vline!(0:nminima(exp0)-1)
 end
 savefig(joinpath("plots","bootstrap_SDm101.pdf"))
 
@@ -103,17 +117,23 @@ savefig(joinpath("plots","bootstrap_SDm101.pdf"))
 exps = let Nexp = 10, Ndata=200
     ThreadsX.map(1:Nexp) do _
         Experiment(mg, data, Ndata;
-            initg = selected_minima0[1],
-            inita = selected_minima0[2])
+            initv = selected_minima0)
     end
 end
 
 let 
 	plot()
+    K = nminima(exp0)
 	map(exps) do exp
-		vt = range(-0.5, 1.5, 200)
+		vt = range(-0.3, K-0.3, 200)
 		NLL0 = NNL(exp,0)
 		plot!(vt, NNL.(Ref(exp), (vt)) .- NLL0)
 	end
-	vline!([0,1])
+    plot!(ylim=(-10,:auto))
+    # 
+    for i in 0:K-1
+        lens!([-0.1,0.1] .+ i, [-5,20], inset=(1, bbox(0.05+0.95i/K,0.3,0.9/(K+1),0.2)))
+        hline!(sp=i+2, [0.0], xaxis=nothing, yaxis=nothing, l=(:dash, :gray))
+    end
+	vline!(0:K-1, lc=2, ls=:dash)
 end

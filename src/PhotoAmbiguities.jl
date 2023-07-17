@@ -6,6 +6,7 @@ using DataFrames
 using Optim
 using LinearAlgebra
 using StaticArrays
+using Interpolations
 
 export ε, d, Y
 include("specialfunctions.jl")
@@ -24,7 +25,7 @@ export coordinates
 export NNL
 export fold, unfold
 export go2min
-export track 
+export nminima
 include("experiments.jl")
 
 end # module PhotoAmbiguities
