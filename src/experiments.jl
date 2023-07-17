@@ -46,8 +46,8 @@ track(p0,pa,t) = (p0+pa)/2 + cis(π*t) * (p0-pa)/2
 
 function NNL(exp::Experiment{M,D,P,K}, t) where {M,D,P,K}
     extended_pv = exp.pv[[K, 1:K..., 1]]
-    itr_real = cubic_spline_interpolation(-1:K, extended_pv .|> real)
-    itr_imag = cubic_spline_interpolation(-1:K, extended_pv .|> imag)
+    itr_real = linear_interpolation(-1:K, extended_pv .|> real)
+    itr_imag = linear_interpolation(-1:K, extended_pv .|> imag)
     # 
     f = itr_real(t) + 1im .* itr_imag(t)
     m = update(exp.model, f |> collect)

@@ -20,7 +20,7 @@ paperinput = "S0" => (0.499, 0),
     "D0" => (0.567, 174),
     "D1" => (0.624, -81.6)
 # 
-const wave2l = Dict('S'=>0, 'P'=>1, 'D'=>2)
+const wave2l = Dict('S'=>0, 'P'=>1, 'D'=>2, 'F'=>3)
 # 
 const waveset0 = [let
     Wave(v*cis(phi/180*π);
@@ -45,25 +45,6 @@ function normalize(v)
 end
 
 const data0 = data[1:1000,:]
-
-# const vg = [
-#     0.49109412952223364 + 0.0im,
-#  0.17452721649480124 + 0.07352771979282956im,
-#  -0.5546581708300674 + 0.030387046460541887im,
-#  0.03779033807335423 - 0.6426222158907298im
-# ]
-# const va = [
-#     0.7978730044478058 + 0.0im,
-#   0.07137995116717206 + 0.013872646891610791im,
-#  -0.19911246194264326 - 0.0035293965456349875im,
-#  0.009340724644777181 - 0.5642389943398158im
-# ]
-# # 
-
-# exp0 = let Ndata = 1000
-#     Experiment(mg, data, Ndata;
-#         initv = [vg,va])
-# end
 
 @time mimimizarion_attempts = let Natt=10
     _mg = mg; #Model((waveset=mg.waveset, Pγ=0))
@@ -93,7 +74,7 @@ function drop_conjugate(minima)
 end
 
 
-selected_minima0 = [a[2] for a in mimimizarion_attempts] .|> normalize |> cluster #|> drop_conjugate
+selected_minima0 = [a[2] for a in mimimizarion_attempts] .|> normalize |> cluster |> drop_conjugate
 sort!(selected_minima0, by=m->NNL(update(mg, m), data0))
 
 
@@ -111,7 +92,7 @@ let
 	plot(t->NNL(exp0, t)-NNL0, -0.5, nminima(exp0)-0.5)
 	vline!(0:nminima(exp0)-1)
 end
-savefig(joinpath("plots","bootstrap_SDm101.pdf"))
+savefig(joinpath("plots","localminimas_SDm101.pdf"))
 
 
 exps = let Nexp = 10, Ndata=200
@@ -137,3 +118,4 @@ let
     end
 	vline!(0:K-1, lc=2, ls=:dash)
 end
+savefig(joinpath("plots","bootstrap_SDm101.pdf"))
