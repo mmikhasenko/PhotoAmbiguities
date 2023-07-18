@@ -12,6 +12,11 @@ update(waves::AbstractVector{Wave}, values::AbstractVector{<:Number}) = Wave.(va
 const Model = NamedTuple{(:waveset,:Pγ), Tuple{Vector{<:Wave}, Float64}}
 update(m::Model, values::AbstractVector{<:Number}) = Model((;waveset=Wave.(values,m.waveset), m.Pγ))
 
+function standardize(v::AbstractArray)
+    v .* cis(-arg(v[1])) ./ norm(v) 
+end
+standardize(m::Model) = update(m, getproperty.(m.waveset, :value) |> standardize)
+
 function intensity(model::Model, τ)
 	@unpack cosθ,ϕ,Φ = τ
 	@unpack waveset, Pγ = model

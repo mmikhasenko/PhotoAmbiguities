@@ -14,10 +14,13 @@ include("specialfunctions.jl")
 export Wave, update
 export Model
 export intensity
+export standardize
 include("waves.jl")
 
 export generate
 export arg, scale
+export distance
+export cluster, drop_conjugate
 include("stattools.jl")
 
 export Experiment

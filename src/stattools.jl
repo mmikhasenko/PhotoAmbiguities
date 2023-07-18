@@ -15,3 +15,19 @@ function coordinates(px, basis)
 	y = dot(p,p2) / sqrt(dot(p2,p2)*dot(p,p))
 	x, y
 end
+
+distance(a,b) = norm(a .- b)
+
+function cluster(minima, ϵ=1e-5)
+    selected = [minima[1]]
+    for m in minima
+        all(distance.(selected, Ref(m)) .> ϵ) && push!(selected, m)
+    end
+    return selected
+end
+
+function drop_conjugate(minima)
+    return filter(minima) do m
+        imag(m[2]) > 0
+    end
+end

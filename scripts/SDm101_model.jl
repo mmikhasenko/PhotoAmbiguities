@@ -1,3 +1,8 @@
+cd(joinpath(@__DIR__, ".."))
+import Pkg
+Pkg.activate(".")
+Pkg.instantiate()
+# 
 using PhotoAmbiguities
 using Markdown
 using LinearAlgebra
@@ -40,41 +45,23 @@ md"""
 ## Local minima
 """
 
-function normalize(v)
-    v .* cis(-arg(v[1])) ./ norm(v) 
-end
 
 const data0 = data[1:1000,:]
 
 @time mimimizarion_attempts = let Natt=10
     _mg = mg; #Model((waveset=mg.waveset, Pγ=0))
     ThreadsX.map(1:Natt) do _
-        init = normalize(2rand(ComplexF64, 4).-(1+1im))
+        init = standardize(2rand(ComplexF64, 4).-(1+1im))
         go2min(_mg, data0, init)
     end
 end
 
 [a[1].minimum for a in mimimizarion_attempts]
 [a[2] for a in mimimizarion_attempts]
-[a[2] for a in mimimizarion_attempts] .|> normalize
-
-distance(a,b) = norm(a .- b)
-function cluster(minima, ϵ=1e-5)
-    selected = [minima[1]]
-    for m in minima
-        all(distance.(selected, Ref(m)) .> ϵ) && push!(selected, m)
-    end
-    return selected
-end
-
-function drop_conjugate(minima)
-    return filter(minima) do m
-        imag(m[2]) > 0
-    end
-end
+[a[2] for a in mimimizarion_attempts] .|> standardize
 
 
-selected_minima0 = [a[2] for a in mimimizarion_attempts] .|> normalize |> cluster |> drop_conjugate
+selected_minima0 = [a[2] for a in mimimizarion_attempts] .|> standardize |> cluster |> drop_conjugate
 sort!(selected_minima0, by=m->NNL(update(mg, m), data0))
 
 
