@@ -15,6 +15,7 @@ begin
 	using Markdown
 	using LinearAlgebra
 	using ThreadsX
+	using DataFrames
 	# 
 	using Plots
 	import Plots.PlotMeasures:mm
@@ -74,13 +75,7 @@ const data0 = data[1:1000,:]
         init = standardize(2rand(ComplexF64, 4).-(1+1im))
         go2min_precompute(_mg, data0, init)
     end
-end
-
-# ╔═╡ 3ef60c89-b185-4c73-807d-5c28efdc95d6
-getindex.(mimimizarion_attempts, 1)
-
-# ╔═╡ ba23b1be-bcae-4228-a40b-2725477216b0
-getindex.(mimimizarion_attempts, 2)
+end;
 
 # ╔═╡ c490aadf-e573-4507-bfc3-9591d460dc24
 getindex.(mimimizarion_attempts, 2) .|> standardize
@@ -91,6 +86,11 @@ selected_minima0 = getindex.(mimimizarion_attempts, 2) .|>
 
 # ╔═╡ b1af62b7-0813-44be-aee7-2e23bf4a364a
 sort!(selected_minima0, by=m->NNL(update(mg, m), data0))
+
+# ╔═╡ 3f31065a-41ac-4b88-8715-30403cebe9f6
+map(selected_minima0) do m
+	NNL(update(mg, m), data0)
+end
 
 # ╔═╡ a7aa4bd9-f87b-4e95-a7d6-40670f3389f0
 md"""
@@ -112,7 +112,7 @@ let
 end
 
 # ╔═╡ d2d93852-909a-4f74-adf3-4a90a59efcdb
-exps = let Nexp = 10, Ndata=200
+exps = let Nexp = 300, Ndata=100
     ThreadsX.map(1:Nexp) do _
         Experiment(mg, data, Ndata;
             initv = selected_minima0)
@@ -122,8 +122,8 @@ end;
 # ╔═╡ 986a472e-5140-457d-ab67-6e5b7275ea6d
 let 
 	plot()
-    K = nminima(exp0)
-	map(exps) do exp
+    K = nminima(exps[1])
+	map(exps[rand(1:length(exps),10)]) do exp
 		vt = range(-0.3, K-0.3, 200)
 		NLL0 = NNL(exp,0)
 		plot!(vt, NNL.(Ref(exp), (vt)) .- NLL0)
@@ -138,6 +138,24 @@ let
 	vline!(0:K-1, lc=2, ls=:dash)
 end
 
+# ╔═╡ df4f4f64-075b-48d6-a951-55f91ade85c1
+let
+	exps′ = filter(exps) do exp
+		norm(exp.pv[1]-exp.pv[2]) > 0.1
+	end
+	d = map(exps′) do exp
+		dmin = norm(exp.pv[1]-exp.pv[2])
+		dNLL = NNL(exp,1)-NNL(exp,0)
+		(; dmin, dNLL)
+	end |> DataFrame
+	plot(layout=grid(1,2), size=(800,350))
+	stephist!(sp=1, d.dmin, bins=20,
+		title="distance between minima", ylab="#counts")
+	f = round(count(d.dNLL .< 0) / length(d.dNLL); digits=2)
+	stephist!(sp=2, d.dNLL, bins=25, lab="f_{<0} = $f",
+		title="difference of NLL", xlab="local-global", ylab="#counts")
+end
+
 # ╔═╡ Cell order:
 # ╠═c3d151e0-255f-11ee-0813-15d3d3fbf424
 # ╠═ae60cdb8-e221-4921-a67e-bd725cbf2754
@@ -148,13 +166,13 @@ end
 # ╟─56300d87-8323-483f-b3fc-4706e7728970
 # ╠═e1a07689-fd52-4680-94ef-20c772b7a873
 # ╠═a111d6f5-316a-4714-bf22-09af899eea93
-# ╠═3ef60c89-b185-4c73-807d-5c28efdc95d6
-# ╠═ba23b1be-bcae-4228-a40b-2725477216b0
 # ╠═c490aadf-e573-4507-bfc3-9591d460dc24
 # ╠═e8a80e40-7f31-49ab-98ac-6ea45f9628b6
 # ╠═b1af62b7-0813-44be-aee7-2e23bf4a364a
+# ╠═3f31065a-41ac-4b88-8715-30403cebe9f6
 # ╟─a7aa4bd9-f87b-4e95-a7d6-40670f3389f0
 # ╠═e28de1ec-4039-4c13-b888-cdd4c224646b
 # ╠═4347ece5-a592-43ed-a115-8e0e0f255074
 # ╠═d2d93852-909a-4f74-adf3-4a90a59efcdb
 # ╠═986a472e-5140-457d-ab67-6e5b7275ea6d
+# ╠═df4f4f64-075b-48d6-a951-55f91ade85c1
