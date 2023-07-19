@@ -72,7 +72,7 @@ const data0 = data[1:1000,:]
     _mg = mg; #Model((waveset=mg.waveset, Pγ=0))
     ThreadsX.map(1:Natt) do _
         init = standardize(2rand(ComplexF64, 4).-(1+1im))
-        go2min(_mg, data0, init)
+        go2min_precompute(_mg, data0, init)
     end
 end
 

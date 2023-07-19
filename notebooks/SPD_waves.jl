@@ -15,6 +15,7 @@ begin
 	using Markdown
 	using LinearAlgebra
 	using ThreadsX
+	using Random
 	# 
 	using Plots
 	import Plots.PlotMeasures:mm
@@ -26,6 +27,9 @@ theme(:wong2, frame=:box, grid=false, minorticks=true,
 	xlim=(:auto, :auto), ylim=(:auto, :auto),
 	lw=1.2, lab="", colorbar=false,
 	bottom_margin=3mm, left_margin=3mm)
+
+# ╔═╡ 4beaa46a-78de-4f83-96a0-74d59ca91271
+Random.seed!(4321)
 
 # ╔═╡ b3ebefb0-dfb6-405e-8802-895e868005eb
 md"""
@@ -52,7 +56,7 @@ const waveset0 = let
 end
 
 # ╔═╡ df66be2b-7608-4900-9f03-0dadd0df4c28
-const mg = Model((; waveset=waveset0, Pγ = 0.85)) |> standardize
+const mg = Model((; waveset=waveset0, Pγ = 0.185)) |> standardize
 
 # ╔═╡ f174c8f7-ee0e-44f7-8b8f-098a5f523443
 data = let
@@ -67,29 +71,26 @@ md"""
 """
 
 # ╔═╡ e1a07689-fd52-4680-94ef-20c772b7a873
-const data0 = data[1:1000,:]
+const data0 = data[1:1000,:];
 
 # ╔═╡ a111d6f5-316a-4714-bf22-09af899eea93
-@time mimimizarion_attempts = let Natt=20
-    _mg = mg; #Model((waveset=mg.waveset, Pγ=0))
+@time mimimizarion_attempts = let Natt=30
+	_mg = mg # Model((; waveset=mg.waveset, Pγ=0.0))
     ThreadsX.map(1:Natt) do _
         init = standardize(2rand(ComplexF64, length(_mg.waveset)).-(1+1im))
-        go2min(_mg, data0, init)
+        go2min_precompute(_mg, data0, init)
     end
-end
-
-# ╔═╡ 3ef60c89-b185-4c73-807d-5c28efdc95d6
-getindex.(mimimizarion_attempts, 1)
-
-# ╔═╡ ba23b1be-bcae-4228-a40b-2725477216b0
-getindex.(mimimizarion_attempts, 2)
+end;
 
 # ╔═╡ c490aadf-e573-4507-bfc3-9591d460dc24
 getindex.(mimimizarion_attempts, 2) .|> standardize
 
+# ╔═╡ 2583396d-10f0-43ac-aee9-fae94a6d4a27
+add_conjugate(minima) = vcat(minima, conj.(minima))
+
 # ╔═╡ e8a80e40-7f31-49ab-98ac-6ea45f9628b6
 selected_minima0 = getindex.(mimimizarion_attempts, 2) .|> 
-	standardize |> cluster |> drop_conjugate
+	standardize |> add_conjugate |> cluster |> drop_conjugate
 
 # ╔═╡ b1af62b7-0813-44be-aee7-2e23bf4a364a
 sort!(selected_minima0, by=m->NNL(update(mg, m), data0))
@@ -119,7 +120,7 @@ let
 end
 
 # ╔═╡ d2d93852-909a-4f74-adf3-4a90a59efcdb
-exps = let Nexp = 10, Ndata=500
+exps = let Nexp = 3, Ndata=200
     ThreadsX.map(1:Nexp) do _
         Experiment(mg, data, Ndata;
             initv = selected_minima0)
@@ -148,6 +149,7 @@ end
 # ╔═╡ Cell order:
 # ╠═c3d151e0-255f-11ee-0813-15d3d3fbf424
 # ╠═ae60cdb8-e221-4921-a67e-bd725cbf2754
+# ╠═4beaa46a-78de-4f83-96a0-74d59ca91271
 # ╟─b3ebefb0-dfb6-405e-8802-895e868005eb
 # ╠═482e8bdb-3720-4fb6-9950-bf7700590183
 # ╠═df66be2b-7608-4900-9f03-0dadd0df4c28
@@ -155,9 +157,8 @@ end
 # ╟─56300d87-8323-483f-b3fc-4706e7728970
 # ╠═e1a07689-fd52-4680-94ef-20c772b7a873
 # ╠═a111d6f5-316a-4714-bf22-09af899eea93
-# ╠═3ef60c89-b185-4c73-807d-5c28efdc95d6
-# ╠═ba23b1be-bcae-4228-a40b-2725477216b0
 # ╠═c490aadf-e573-4507-bfc3-9591d460dc24
+# ╠═2583396d-10f0-43ac-aee9-fae94a6d4a27
 # ╠═e8a80e40-7f31-49ab-98ac-6ea45f9628b6
 # ╠═b1af62b7-0813-44be-aee7-2e23bf4a364a
 # ╠═c37b0ecb-9217-4957-9475-9c49eafccd07
