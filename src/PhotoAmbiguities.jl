@@ -21,7 +21,9 @@ include("waves.jl")
 export generate
 export arg, scale
 export distance
-export cluster, drop_conjugate
+export cluster
+export add_conjugate
+export drop_conjugate
 include("stattools.jl")
 
 export Experiment

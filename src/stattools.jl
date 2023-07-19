@@ -26,6 +26,8 @@ function cluster(minima, ϵ=1e-5)
     return selected
 end
 
+add_conjugate(minima) = vcat(minima, conj.(minima))
+
 function drop_conjugate(minima)
     return filter(minima) do m
         imag(m[2]) > 0
