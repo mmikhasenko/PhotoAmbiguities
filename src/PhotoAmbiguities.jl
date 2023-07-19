@@ -7,6 +7,7 @@ using Optim
 using LinearAlgebra
 using StaticArrays
 using Interpolations
+using ForwardDiff
 
 export ε, d, Y
 include("specialfunctions.jl")
@@ -27,8 +28,10 @@ export Experiment
 export coordinates
 export NNL
 export fold, unfold
-export go2min
+export go2min, go2min_precompute
 export nminima
+export pullbilinear
+export BiLinearCompute
 include("experiments.jl")
 
 end # module PhotoAmbiguities

@@ -5,6 +5,28 @@ function NNL(m::Model, data)
 	return -sum(log ∘ I, eachrow(data)) + Nd * sum(w->abs2(w.value), waveset)
 end
 
+const BiLinearCompute{N,T} = Vector{SMatrix{N,N,T}}
+
+function pullbilinear(m::Model, data)
+    p0 = getproperty.(m.waveset, :value) |> fold
+    N = length(p0)
+    # 
+    H(τ) = ForwardDiff.hessian(p0) do x
+        intensity(update(m, x |> unfold), τ) / 2
+    end |> SMatrix{N,N}
+    #
+    BiLinearCompute{N,Float64}(H.(eachrow(data)))  
+end
+
+function NNL(p::AbstractVector{<:Real}, Hv::BiLinearCompute)
+    sumlog = sum(Hv) do H
+       log(p' * H * p) 
+    end
+	Nd = length(Hv)
+	return -sumlog + Nd * sum(abs2, p)
+end
+
+
 function unfold(v::AbstractVector{<:Real})
     N = div(length(v)+1,2)
     return v[1:N] + 1im * [0, v[N+1:end]...]
@@ -20,6 +42,13 @@ function go2min(m::Model, data, startvalues)
 	return opt_result, opt_result.minimizer |> unfold 
 end
 
+function go2min_precompute(m::Model, data, startvalues)
+    Hv = pullbilinear(m, data)
+	objective(x) = NNL(x, Hv)
+	init = startvalues |> fold
+	opt_result = optimize(objective, init, BFGS())
+	return opt_result, opt_result.minimizer |> unfold 
+end
 
 
 struct Experiment{M,D,P,K}
@@ -34,7 +63,7 @@ function Experiment(m::Model, data, N::Int; initv::Vector{Vector{T}} where T)
     pickeditems = rand(1:size(data,1), N)
     _data = data[pickeditems,:]
     # 
-    pv = [go2min(m, _data, init)[2] for init in initv]
+    pv = [go2min_precompute(m, _data, init)[2] for init in initv]
     # 
     K = length(initv)
     P = length(initv[1])
