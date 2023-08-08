@@ -15,3 +15,20 @@ PartialWaveFunctions = "793d2195-304b-438e-bbb1-bc33c872ac39"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 ThreadsX = "ac1d9e8a-700a-412c-b207-f0111f4b6c0d"
+
+[compat]
+DataFrames = "1.6.1"
+ForwardDiff = "0.10.35"
+Interpolations = "0.14.7"
+Optim = "1.7.6"
+Parameters = "0.12.3"
+PartialWaveFunctions = "0.2.0"
+Plots = "1.38.17"
+StaticArrays = "1.6.2"
+ThreadsX = "0.1.11"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
