@@ -8,7 +8,7 @@
 The "PhotoAmbiguities.jl" repository is a Julia-based codebase dedicated to the numerical analysis of ambiguities in photoproduction, as discussed in the associated paper titled "Ambiguities in Partial Wave Analysis of Two Spinless Meson Photoproduction." While the paper offers an academic treatment of the problem, demonstrating that there cannot be numerous solution of identical quality.Additional challenges arise due to the Barrlett zeros present in the unpolarized case. These zeros can lead to local minima that might, due to statistical fluctuations, exhibit a higher likelihood for finite statistics samples. This repository delves into this effect, identifying local minima on high-statistic samples and subsequently running pseudoexperiments to observe the fluctuation of the likelihood difference in small-statistic samples.
 
 ## Features
-- **Notebooks**: Jupyter notebooks for interactive analysis and visualization.
+- **Notebooks**: Pluto notebooks for interactive analysis and visualization.
 - **Plots**: Visual representations of data and results, including the "dminima plot" and "two minimas."
 - **Scripts**: Utility scripts for various tasks, including Minuit adjustments.
 - **Source Files**: Core Julia code for the main functionalities of the project.
