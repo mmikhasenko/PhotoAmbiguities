@@ -1,4 +1,4 @@
-# Analysis of rescattering effects in $3\pi$ final states
+# Studies of discrete ambiguities in Photoproduction
 
 [![GitHub page](https://img.shields.io/badge/GitHub-README.md-yellowgreen)](https://github.com/mmikhasenko/PhotoAmbiguities.jl)
 [![arXiv article](https://img.shields.io/badge/article-%20hep--ph%3A2212.11767-brightgreen)](https://inspirehep.net/literature/2673390)
