@@ -23,13 +23,14 @@ jobs:
             - name: Checkout this repository
               uses: actions/checkout@v2
 
-            - name: Set up Pandoc
+            - name: Set up Pandoc for index orocessing
               run: |
                 sudo apt-get install pandoc
 
-            - name: Convert README.md to index.html
+            - name: Convert README.md to index.html, add CSS
               run: |
-                pandoc README.md -s --metadata pagetitle="Your Page Title" -o index.html
+                chmod +x indexprocess.sh
+                ./indexprocess.sh
 
             - name: Install Julia
               uses: julia-actions/setup-julia@v1
